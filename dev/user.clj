@@ -2,16 +2,18 @@
   "Tools for interactive development with the REPL. This file should
   not be included in a production build of the application."
   (:require
-   [clojure.java.io :as io]
-   [clojure.java.javadoc :refer [javadoc]]
-   [clojure.pprint :refer [pprint]]
-   [clojure.reflect :refer [reflect]]
-   [clojure.repl :refer [apropos dir doc find-doc pst source]]
-   [clojure.set :as set]
-   [clojure.string :as str]
-   [clojure.test :as test]
-   [clojure.tools.namespace.repl :refer [refresh refresh-all]]
-   [baustellen :refer :all]))
+    [clojure.java.io :as io]
+    [clojure.java.javadoc :refer [javadoc]]
+    [clojure.pprint :refer [pprint]]
+    [clojure.reflect :refer [reflect]]
+    [clojure.repl :refer [apropos dir doc find-doc pst source]]
+    [clojure.set :as set]
+    [clojure.string :as str]
+    [clojure.test :as test]
+    [clojure.tools.namespace.repl :refer [refresh refresh-all]]
+    [clojure.walk :as walk]
+    [baustellen :refer :all]
+    [baustellen.input-transformation :as it]))
 
 (def skill-cost {:walls 30
                  :roof 20
@@ -59,4 +61,8 @@
                              :roof {:dachdecker1 6}
                              :plumbing {:klempner1 1}}})
 
+(def completed-coalition
+  (->> coalition
+       (walk/prewalk-replace (it/pull-in-names agents))
+       (walk/prewalk-replace (it/pull-in-names sites))))
 

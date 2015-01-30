@@ -49,3 +49,37 @@
     (- (get-in coalition [:site :payoff])
        (total-cost coalition sites agents skill-costs))
     0))
+
+(defn sorted-map-by-distance [location m]
+  (into (sorted-map-by (fn [k1 k2]
+                         (compare [(distance location (:location (m k1))) k1]
+                                  [(distance location (:location (m k2))) k2])))
+        m))
+
+(defn filter-skill [skill agents]
+  (into {} (filter (fn [[k v]] (= skill (:skill v)))
+                   agents)))
+
+(defn allocation-for-skill
+  [location [skill n-needed] agents]
+  (let [sorted-agents (sorted-map-by-distance location
+                                              (filter-skill skill agents))]
+    (loop [n-remaining n-needed
+           remaining-agents sorted-agents
+           processed-agents {}
+           allocation {}]
+      (cond
+        (zero? n-remaining)
+        [allocation (merge processed-agents remaining-agents)]
+
+        (empty? remaining-agents)
+        nil
+
+        :else
+        (let [[a-k a-v] (first remaining-agents)
+              n-taken (min n-remaining (:capacity a-v))
+              new-a-v (update-in a-v [:capacity] #(- % n-taken))]
+          (recur (- n-remaining n-taken)
+                 (dissoc remaining-agents a-k)
+                 (assoc processed-agents a-k new-a-v)
+                 (assoc allocation new-a-v n-taken)))))))

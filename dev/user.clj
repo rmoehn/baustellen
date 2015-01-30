@@ -17,44 +17,46 @@
                  :roof 20
                  :plumbing 10})
 
-(def sites [{:payoff 300
-             :name "Sporthalle"
+(def sites {:sporthalle
+            {:payoff 400
              :skills {:walls 3
                       :roof 6
                       :plumbing 1}
              :location [4 4]}
+
+            :schwimmhalle
             {:payoff 600
-             :name "Schwimmhalle"
              :skills {:walls 2
                       :roof 0
                       :plumbing 8}
              :location [3 1]}
+
+            :einfamilienhaus
             {:payoff 150
-             :name "Einfamilienhaus"
              :skills {:walls 5
                       :roof 5
                       :plumbing 5}
-             :location [7 1]}])
+             :location [7 1]}})
 
-(def agents [{:name "Maurer 1"
-              :skill :walls
-              :capacity 10
-              :location [1 5]}
-             {:name "Maurer 2"
-              :skill :walls
-              :capacity 7
-              :location [5 4]}
-             {:name "Dachdecker 1"
-              :skill :roof
-              :capacity 15
-              :location [0 2]}
-             {:name "Klempner 1"
-              :skill :plumbing
-              :capacity 8
-              :location [3 2]}
-             {:name "Klempner 2"
-              :skill :plumbing
-              :capacity 8
-              :location [8 2]}])
+(def agents {:maurer1     {:skill :walls
+                           :capacity 10
+                           :location [1 5]}
+             :maurer2     {:skill :walls
+                           :capacity 7
+                           :location [5 4]}
+             :dachdecker1 {:skill :roof
+                           :capacity 15
+                           :location [0 2]}
+             :klempner1   {:skill :plumbing
+                           :capacity 8
+                           :location [3 2]}
+             :klempner2   {:skill :plumbing
+                           :capacity 8
+                           :location [8 2]}})
+
+(def coalition {:site :sporthalle
+                :allocation {:walls {:maurer1 1 :maurer2 2}
+                             :roof {:dachdecker1 6}
+                             :plumbing {:klempner1 1}}})
 
 

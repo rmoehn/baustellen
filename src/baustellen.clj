@@ -1,4 +1,6 @@
-(ns baustellen)
+(ns baustellen
+  (:require [clojure.pprint :refer [pprint]])
+  )
 
 (defn distance [p1 p2]
   (Math/sqrt
@@ -83,3 +85,19 @@
                  (dissoc remaining-agents a-k)
                  (assoc processed-agents a-k new-a-v)
                  (assoc allocation new-a-v n-taken)))))))
+
+(defn find-initial-allocation
+  "Given a construction site and information about available agents, finds a
+  heuristically good allocation for this site. Returns the coalition and and the
+  agent datastructure with capacities reduced according to the allocation."
+  [site agents]
+  (println site)
+  (println (:skills site))
+  (let [allocs-agents (map (fn [demand]
+                             (allocation-for-skill (:location site)
+                                                   demand
+                                                   agents))
+                           (:skills site))
+        allocs (map first allocs-agents)
+        agents (map second allocs-agents)]
+    [(into {} allocs) (into {} agents)]))

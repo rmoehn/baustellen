@@ -1,0 +1,83 @@
+Begriffe:
+- Anbieter: anbietender Agent
+- Skilleinheit: ein Stück eines bestimmten Skills
+- Skillbündel: ein Agent und die Anzahl von ihm zur Verfügung gestellter
+  Skilleinheiten
+- Kapazität: Anzahl der Skilleinheiten, die ein Agent zur Verfügung
+  stellen kann
+- Anfangskapazität: Kapazität, die ein Agent hat, wenn er noch keine
+  Skilleinheiten zur Verfügung stellt (im Rahmen einer Allokation)
+- individuelle Allokation: Zuordnung von Skillbündeln zu einer
+  Baustelle
+- Allokation: alle individuellen Allokationen zusammen
+- Bedarf: Anzahl der Skilleinheiten, die eine Baustelle benötigt
+
+Was macht der Algorithmus?
+-> GRASP, aber nicht mit lokaler Suche, sondern mit Tabu-Suche
+-> nicht ganz so wie in den Folien, da unsere Koalition anders
+   funktioniert
+1. Finde zufällige Allokation.
+2. Mache Tabu-Suche mit dieser Allokation. – Abbruch nach bestimmter
+   Zeit.
+3. Speichere bestes Ergebnis der Tabu-Suche.
+4. Fange von vorne an.
+
+Finden zufälliger Allokation:
+- gibt keinen besten Agenten wie in der Folie
+- haben schon einen Algorithmus -> randomisieren
+    -> Agenten mit geringstem Abstand nur mit bestimmter Wkt zuordnen
+    -> nicht komplette Kapazität, sondern zufälliges Bündel
+- nicht bis Bedarf aller Baustellen gedeckt (falls möglich), sondern bis
+  zu bestimmter Anzahl von Zuordnungsoperationen (Parameter)
+
+Tabu-Suche:
+1. Habe initiale Allokation.
+2. Finde ähnliche Allokationen (Nachbarschaft).
+3. Wähle beste davon, sofern sie nicht vor kurzem erst besucht wurde.
+   Falls mehrere gleich: zufällig
+4. Fange von vorne an.
+
+Nachbarschaft generieren:
+- habe bestimmte Allokation
+- wende Operation auf Allokation an
+- Wie können wir Allokation geringfügig verändern?
+    - ein Skillbündel aus individueller Allokation entfernen
+    - individueller Allokation ein Skillbündel hinzufügen, bis
+      Anbieter erschöpft
+    - Teil bestimmter Größe eines Skillbündels aus individueller
+      Allokation entfernen
+    - individueller Allokation ein Skillbündel bestimmter Größte
+      (maximal bis zur Erschöpfung des Anbieters) hinzufügen
+    - Skillbündel bestimmter Größe (maximal individuelle Allokation der
+      Geber- bzw. Bedarf der Nehmerbaustelle) zwischen Baustellen
+      austauschen
+    - Skillbündel zwischen Baustellen verschieben
+    - Austausch von Skillbündel zwischen Baustelle und Reservoir
+
+Fragen:
+- Lassen wir Überallokation zu? Macht keinen Sinn, da nur Kosten und
+  kein Nutzen.
+- Skillreservoir als Baustelle modellieren?
+- Lassen wir Operationen zu, die die Nettoauszahlung einer individuellen
+  Allokation negativ machen?
+    - Gegeben Allokation A1 mit positivem Wert v(A1). Anwendung einer
+      Operation führt zu Allokation A2 mit negativem Wert.
+        - Kann es eine Operation geben, die zu A3 führt mit v(A3) >
+          v(A1)?
+        - Kann das auch ohne negative Zwischenschritte erreicht werden?
+- Müssen wir zusammengesetzte Operationen implementieren?
+    - Wenn eine Baustelle
+
+Anpassung naiver Lösungen:
+- ?
+
+Aufgaben (@AOTBaustellen):
+- Planung und Design #Planung:BC
+- bisherigen Code und Datenstrukturen umschreiben, sodass wir den Rest
+  möglichst einfach machen können #Rewrite:AB
+- Finden initialer Allokation randomisieren #ZufälligeAllokation:AB
+- GRASP schreiben (gegeben #TabuSuche) #GRASP:AB
+- Tabu-Suche schreiben (gegeben #Nachbarschaft) #TabuSuche:CB
+- Nachbarschaftsgenerator schreiben #Nachbarschaft:CC
+- ausprobieren #Probelauf:AB
+- naive Lösungen anpassen #Tweaking:CD

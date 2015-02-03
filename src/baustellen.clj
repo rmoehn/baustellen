@@ -117,17 +117,46 @@
       m)
     (dissoc m k)))
 
-(defn generate-neighborhood [allocation reservoir]
+(defn move-to-reservoir
+  [{:keys allocation reservoir} [_ skill agent-k :as path]]
+  (let [bundle-size (get-in allocation path)]
+    {:allocation (dissoc-in allocation path)
+     :reservoir (update-in reservoir [skill agent-k] #(+ % bundle-size))}))
+
+(defn good-agents
+  "Finds the n (or less) agents providing the skill that are closest to the site
+  with key site-k and still have capacity."
+  [n site-k skill reservoir static-data]
+  (let [bundles (reservoir skill)
+        non-exhausted (filter-map pos? bundles)
+        by-distance (sort-by #(distance
+                                (get-in static-data [:sites site-k :location])
+                                (get-in static-data [:agents % :location]))
+                             (keys non-exhausted))]
+    (take n by-distance)))
+
+(defn allocate-max-bundle
+  [{:keys allocation reservoir} [site-k skill :as path] agent-k static-data]
+  (let [demand (demand allocation path)
+        to-allocate (min demand (get-in reservoir [skill agent-k]))]
+    {:allocation (update-in allocation path
+                            #(if (nil? %) to-allocate (+ % to-allocate)))
+     :reservoir (update-in reservoir [skill agent-k] #(- % to-allocate))}))
+
+(defn generate-neighborhood
+  [{:keys allocation reservoir :as distribution} static-data
+   {:keys n-good-agents}]
   (concat
-    (for [site (idents allocation)
-          skill-alloc (idents site)
-          bundle (idents skill-alloc)]
-      (dissoc-in allocation [site skill-alloc bundle]))
-    (for [site (idents allocation)
-          skill-alloc (idents site)]
-      (if (incomplete? (i->e skill-alloc))
-        (for [a (nearest-agents n site agents)]
-          (allocate-max-bundle site a))))))
+    (for [site-k (keys allocation)
+          skill (keys site)
+          agent-k (keys skill)]
+      (move-to-reservoir distribution [site-k skill agent-k]))
+    (for [site-k (keys allocation)
+          skill (keys site)]
+      (if (incomplete-alloc? site-k (get-in [site-k skill] allocation)
+                             static-data)
+        (for [a (good-agents n-good-agents site-k skill reservoir static-data)]
+          (allocate-max-bundle distribution [site-k skill] a static-data))))))
 
 (defn tabu-search [allocation reservoir iterations]
   (let [tabu-queue (ring-buffer n-tabued)])

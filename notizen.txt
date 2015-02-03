@@ -120,6 +120,8 @@ Datenstrukturen:
     - muss unterstützen: Zuordnung von Skillbündeln zu Baustelle,
       Entfernen von Skillbündeln von Baustelle, Berechnung des Payoffs
 
+Brauchen irgendwie alles in allen Richtungen.
+
 Anpassung naiver Lösungen:
 - ?
 

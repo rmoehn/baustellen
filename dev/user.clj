@@ -67,3 +67,7 @@
        (walk/prewalk-replace agents)
        (walk/prewalk-replace sites)))
 
+(def algo-params
+  {; maximum number of "good" agents to consider during the neighborhood
+   ; generation
+   :n-good-agents 3})

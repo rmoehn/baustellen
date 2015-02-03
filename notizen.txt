@@ -10,7 +10,11 @@ Begriffe:
 - individuelle Allokation: Zuordnung von Skillbündeln zu einer
   Baustelle
 - Allokation: alle individuellen Allokationen zusammen
+- vollständige individuelle Allokation: individuelle Allokation, die den
+  Bedarf der Baustelle deckt
 - Bedarf: Anzahl der Skilleinheiten, die eine Baustelle benötigt
+- Brutto-Payoff: Payoff vor Abzug der Kosten
+- Netto-Payoff: Payoff nach Abzug der Kosten
 
 Was macht der Algorithmus?
 -> GRASP, aber nicht mit lokaler Suche, sondern mit Tabu-Suche
@@ -53,6 +57,13 @@ Nachbarschaft generieren:
       austauschen
     - Skillbündel zwischen Baustellen verschieben
     - Austausch von Skillbündel zwischen Baustelle und Reservoir
+- für jede Baustelle in Allokation:
+    - für jeden Skill in Baustelle:
+        - für jedes diesem Skill zugeordnete Bündel:
+          entferne Bündel, speichere Ergebnis in Nachbarschaft
+        - falls Bedarf an diesem Skill noch nicht gedeckt:
+          alloziere jeweils einen der n nächsten Agenten im
+          Reservoir, speichere alle Ergebnisse in Nachbarschaft
 
 Fragen:
 - Lassen wir Überallokation zu? Macht keinen Sinn, da nur Kosten und
@@ -65,14 +76,48 @@ Fragen:
         - Kann es eine Operation geben, die zu A3 führt mit v(A3) >
           v(A1)?
         - Kann das auch ohne negative Zwischenschritte erreicht werden?
+        - Unwahrscheinlich.
+        - Erstmal verbieten.
+        - Doch, wir brauchen es. Wenn eine individuelle Allokation
+          unvollständig ist, hat sie Brutto-Payoff 0, d. h. negativen
+          Netto-Payoff. Diese Lösungen wollen wir in der Tabu-Suche
+          berücksichtigen, also dürfen wir sie nicht verbieten.
 - Müssen wir zusammengesetzte Operationen implementieren?
-    - Wenn eine Baustelle
+    - Prinzipiell sollten von der Tabu-Suche alle Lösungen gefunden
+      werden.
+    - Mit zusammengesetzten Operationen könnte das möglicherweise
+      schneller gehen.
+    - Erstmal die einfachen Operationen implementieren und sehen, wie es
+      sich verhält.
+
+Datenstrukturen:
+- Reservoir: 
+    - enthält Agenten, zugeordnet zu Skills
+    - muss unterstützen: Entnahme von Skillbündeln, Hinzufügen von
+      Skillbündeln = Verringerung, Erhöhung der Kapazität von Agenten
+- Agenten
+- Baustellen
+- Skillkosten
+- Tabuliste
+    - enthält Allokationen, die nicht besucht werden dürfen
+    - muss unterstützen: Hinzufügen und Entfernen von Allokationen,
+      Anwesenheitskontrolle von Allokationen
+    - eine Queue? Allokationen, die für eine bestimmte Zeitdauer drin
+      sind, werden entfernt.
+- Nachbarschaft
+    - enthält Allokationen
+    - muss unterstützen: Hinzufügen von Allokationen, finden der
+      Allokation mit höchstem Payoff
+- Allokation
+    - enthält Zuordnung von Skillbündeln zu Baustellen
+    - muss unterstützen: Zuordnung von Skillbündeln zu Baustelle,
+      Entfernen von Skillbündeln von Baustelle, Berechnung des Payoffs
 
 Anpassung naiver Lösungen:
 - ?
 
 Aufgaben (@AOTBaustellen):
-- Planung und Design #Planung:BC
+- Planung und Design #Planung:BC(100 min)
 - bisherigen Code und Datenstrukturen umschreiben, sodass wir den Rest
   möglichst einfach machen können #Rewrite:AB
 - Finden initialer Allokation randomisieren #ZufälligeAllokation:AB

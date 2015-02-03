@@ -1,0 +1,42 @@
+(def sites {
+:Baustelle1{ :payoff 2200 :skills {:walls 30 :roof 15 :plumbing 35} :location [3 4]}
+:Baustelle2{ :payoff 1200 :skills {:walls 25 :roof 9 :plumbing 37} :location [4 17]}
+:Baustelle3{ :payoff 2500 :skills {:walls 25 :roof 27 :plumbing 30} :location [12 18]}	
+:Baustelle4{ :payoff 2200 :skills {:walls 35 :roof 20 :plumbing 32} :location [17 7]}
+})
+
+; Kommentar
+; Blue : Walls,
+; Yellow : Roofer,  
+; Green : Plumber
+
+(def agents {	
+: Plumber1{ :skill :plumbing :capacity 20 :location [3 18] }
+: Plumber2{ :skill :plumbing :capacity 28 :location [5 4] }
+: Plumber3{ :skill :plumbing :capacity 40 :location [10 11] }
+: Plumber4{ :skill :plumbing :capacity 23 :location [15 18] }
+: Plumber5{ :skill :plumbing :capacity 20 :location [20 7] }
+
+: Roofer1{ :skill :roof :capacity 30 :location [1 1] }
+: Roofer2{ :skill :roof :capacity 27 :location [3 14] }
+: Roofer3{ :skill :roof :capacity 25 :location [17 16] }
+: Roofer4{ :skill :roof :capacity 30 :location [19 2] }
+
+
+: Wall1{:skill :walls :capacity 20 :location [1 20] }
+: Wall2{:skill :walls :capacity 20 :location [4 6] }
+: Wall3{:skill :walls :capacity 20 :location [10 9] }
+: Wall4{:skill :walls :capacity 20 :location [15 20]}
+: Wall5{:skill :walls :capacity 30 :location [16 5]}
+})
+
+
+; Kommentar: 
+; Mit diese Kapazitaeten wuerden alle Baustellen NICHT geschlossen werden.
+; Auch wenn W3 und P3 ueberall mitwirken, der Bedarf wird nicht gedeckt.
+; b1(w2,r1,p2) => (10,0, 7) -> r1(15)
+; b2(w1,r2,p1) => (5, 0, 17) -> r2(18)
+; b3(w4,r3,p4) => (5, 0, 9) 
+; b4(w5,r4,p5) => (5,0, 12) -> r4(10)
+; w3 >= 25 p3 >= 45 
+; W3 und P3 sind hier Veto-Spieler.

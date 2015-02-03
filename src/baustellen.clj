@@ -140,7 +140,7 @@
   (let [demand (demand allocation path)
         to-allocate (min demand (get-in reservoir [skill agent-k]))]
     {:allocation (update-in allocation path
-                            #(if (nil? %) to-allocate (+ % to-allocate)))
+                            #(if % (+ % to-allocate) to-allocate))
      :reservoir (update-in reservoir [skill agent-k] #(- % to-allocate))}))
 
 (defn generate-neighborhood
@@ -158,12 +158,27 @@
         (for [a (good-agents n-good-agents site-k skill reservoir static-data)]
           (allocate-max-bundle distribution [site-k skill] a static-data))))))
 
-(defn tabu-search [allocation reservoir iterations]
-  (let [tabu-queue (ring-buffer n-tabued)])
-  (loop [best-allocs [allocation]
-         tabu-queue (conj tabu-queue allocation)]
-    (let [neighbors (filter #(not-tabu? % tabu-queue)
-                            (generate-neighorhood allocation reservoir))
-          best-neighbor (find-best-alloc neighbors)]
-      (recur (conj best-allocs best-neighbor) (conj tabu best-neighbor)))))
-                                              ; Does our queue support conj?
+(defn find-best-distr [distrs]
+  (first (sort-by #(netto-payoff (:allocation %)) distrs)))
+
+(defn tabu-search
+  [{:keys allocation reservoir :as distribution}
+   {:keys n-iterations :as algo-params}]
+  (let [tabu-allocs (ring-buffer n-tabued)]
+    (take
+      n-iterations
+      (take-while
+        some?
+        (iterate
+          (fn [[{:keys allocation reservoir :as distribution} best-allocs
+                tabu-allocs]]
+            (let [neighbors (filter #(not-any? #{(:allocation %)} tabu-allocs)
+                                    (generate-neighborhood distribution
+                                                           static-data
+                                                           algo-params))
+                  best-neighbor (find-best-distr neighbors)
+                  best-alloc (:allocation best-neighbor)]
+              (and (seq neighbors)
+                   [best-neighbor (conj best-allocs best-alloc)
+                    (conj tabu-allocs best-alloc)])))
+          [distribution [allocation] (conj tabu-allocs allocation)])))))

@@ -63,7 +63,7 @@
                    agents)))
 
 (defn allocation-for-skill
-  [location [skill n-needed] agents]
+  [site-k static-data]
   (let [sorted-agents (sorted-map-by-distance location
                                               (filter-skill skill agents))]
     (loop [n-remaining n-needed
@@ -91,8 +91,6 @@
   heuristically good allocation for this site. Returns the coalition and and the
   agent datastructure with capacities reduced according to the allocation."
   [site agents]
-  (println site)
-  (println (:skills site))
   (let [allocs-agents (map (fn [demand]
                              (allocation-for-skill (:location site)
                                                    demand
@@ -101,6 +99,34 @@
         allocs (map first allocs-agents)
         agents (map second allocs-agents)]
     [(into {} allocs) (into {} agents)]))
+
+(defn allocate-full
+  "Allocates as many units of skill as possible and needed to site with site-k,
+  returning the new distribution."
+  [{:keys allocation reservoir :as distribution} site-k skill static-data]
+  (loop [available (good-agents (count (:agents static-data)) site-k skill
+                                reservoir static-data)
+         cur-distr distribution]
+    (if (and (seq available)
+             (pos? (demand allocation [site-k skill] static-data)))
+      (recur (rest available)
+             (allocate-max-bundle cur-distr [site-k skill] (first available)
+                                  static-data))
+      cur-distr)))
+
+(defn find-single-distribution
+  "For each skill needed by site site-k, allocates as many units of that skill
+  as possible and needed to it. Returns the new distribution."
+  [{:keys allocation reservoir :as distribution} site-k static-data]
+  (let [allocator (fn [prev-distr skill] (allocate-full prev-distr site-k
+                                                        skill static-data))]
+    (reduce allocator distribution
+            (keys (get-in static-data [:sites site-k :skills])))))
+
+(defn find-initial-distribution [reservoir static-data]
+  (let [allocator (fn [prev-distr site-k])])
+  (reduce find-single-distribution {:allocation {} :reservoir reservoir}
+          (keys (:sites static-data))))
 
 ;;; Credits: http://stackoverflow.com/questions/14488150/how-to-write-a-dissoc-in-command-for-clojure
 (defn dissoc-in
@@ -135,9 +161,18 @@
                              (keys non-exhausted))]
     (take n by-distance)))
 
+(defn demand
+  "Return the demand for skill of the site with site-k given an allocation."
+  [allocation [site-k skill] static-data]
+  {:pre [(>= % 0)]}
+  (let [bundles (get-in allocation path)
+        n-allocated (apply + (values bundles))
+        initial-capacity (get-in static-data [:sites site-k :skills skill])]
+    (- initial-capacity n-allocated)))
+
 (defn allocate-max-bundle
   [{:keys allocation reservoir} [site-k skill :as path] agent-k static-data]
-  (let [demand (demand allocation path)
+  (let [demand (demand allocation path static-data)
         to-allocate (min demand (get-in reservoir [skill agent-k]))]
     {:allocation (update-in allocation path
                             #(if % (+ % to-allocate) to-allocate))
@@ -153,8 +188,7 @@
       (move-to-reservoir distribution [site-k skill agent-k]))
     (for [site-k (keys allocation)
           skill (keys site)]
-      (if (incomplete-alloc? site-k (get-in [site-k skill] allocation)
-                             static-data)
+      (if (pos? (demand (demand allocation [site-k skill] static-data)))
         (for [a (good-agents n-good-agents site-k skill reservoir static-data)]
           (allocate-max-bundle distribution [site-k skill] a static-data))))))
 

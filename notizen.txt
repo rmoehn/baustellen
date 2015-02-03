@@ -91,13 +91,20 @@ Fragen:
       sich verhält.
 
 Datenstrukturen:
-- Reservoir: 
+- Reservoir:
     - enthält Agenten, zugeordnet zu Skills
     - muss unterstützen: Entnahme von Skillbündeln, Hinzufügen von
       Skillbündeln = Verringerung, Erhöhung der Kapazität von Agenten
 - Agenten
+    - Position
+    - Skill
+    - Anfangskapazität
 - Baustellen
+    - Position
+    - Bedarf
+    - Payoff
 - Skillkosten
+    - Kosten pro Skill- und Entfernungseinheit
 - Tabuliste
     - enthält Allokationen, die nicht besucht werden dürfen
     - muss unterstützen: Hinzufügen und Entfernen von Allokationen,

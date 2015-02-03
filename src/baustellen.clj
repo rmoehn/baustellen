@@ -101,3 +101,40 @@
         allocs (map first allocs-agents)
         agents (map second allocs-agents)]
     [(into {} allocs) (into {} agents)]))
+
+;;; Credits: http://stackoverflow.com/questions/14488150/how-to-write-a-dissoc-in-command-for-clojure
+(defn dissoc-in
+  "Dissociates an entry from a nested associative structure returning a new
+  nested structure. keys is a sequence of keys. Any empty maps that result
+  will not be present in the new structure."
+  [m [k & ks :as keys]]
+  (if ks
+    (if-let [nextmap (get m k)]
+      (let [newmap (dissoc-in nextmap ks)]
+        (if (seq newmap)
+          (assoc m k newmap)
+          (dissoc m k)))
+      m)
+    (dissoc m k)))
+
+(defn generate-neighborhood [allocation reservoir]
+  (concat
+    (for [site (idents allocation)
+          skill-alloc (idents site)
+          bundle (idents skill-alloc)]
+      (dissoc-in allocation [site skill-alloc bundle]))
+    (for [site (idents allocation)
+          skill-alloc (idents site)]
+      (if (incomplete? (i->e skill-alloc))
+        (for [a (nearest-agents n site agents)]
+          (allocate-max-bundle site a))))))
+
+(defn tabu-search [allocation reservoir iterations]
+  (let [tabu-queue (ring-buffer n-tabued)])
+  (loop [best-allocs [allocation]
+         tabu-queue (conj tabu-queue allocation)]
+    (let [neighbors (filter #(not-tabu? % tabu-queue)
+                            (generate-neighorhood allocation reservoir))
+          best-neighbor (find-best-alloc neighbors)]
+      (recur (conj best-allocs best-neighbor) (conj tabu best-neighbor)))))
+                                              ; Does our queue support conj?

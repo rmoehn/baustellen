@@ -161,13 +161,13 @@
   (concat
     (for [site-k (keys allocation)
           skill (keys (allocation site-k))
-          agent-k (keys skill)]
+          agent-k (keys (get-in allocation [site-k skill]))]
       (move-to-reservoir distribution [site-k skill agent-k]))
     (for [site-k (keys allocation)
-          skill (keys (get-in static-data [:sites site-k :skills]))]
-      (if (pos? (demand (demand allocation [site-k skill] static-data)))
-        (for [a (good-agents n-good-agents site-k skill reservoir static-data)]
-          (allocate-max-bundle distribution [site-k skill] a static-data))))))
+          skill (keys (get-in static-data [:sites site-k :skills]))
+          :when (pos? (demand allocation [site-k skill] static-data))
+          a (good-agents n-good-agents site-k skill reservoir static-data)]
+      (allocate-max-bundle distribution [site-k skill] a static-data))))
 
 (defn find-best-distr [distrs static-data]
   (first (sort-by #(netto-payoff (:allocation %) static-data) distrs)))

@@ -62,6 +62,10 @@
                              :roof {:dachdecker1 6}
                              :plumbing {:klempner1 1}}})
 
+(def static-data {:sites sites
+                  :agents agents
+                  :skill-cost skill-cost})
+
 (def completed-coalition
   (->> coalition
        (walk/prewalk-replace agents)

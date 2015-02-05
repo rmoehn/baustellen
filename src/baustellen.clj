@@ -1,6 +1,6 @@
 (ns baustellen
-  (:require [clojure.pprint :refer [pprint]])
-  )
+  (:require [clojure.pprint :refer [pprint]]
+            [amalloy.ring-buffer :refer [ring-buffer]]))
 
 (defn distance [p1 p2]
   (Math/sqrt
@@ -52,58 +52,61 @@
        (total-cost coalition sites agents skill-costs))
     0))
 
-(defn sorted-map-by-distance [location m]
-  (into (sorted-map-by (fn [k1 k2]
-                         (compare [(distance location (:location (m k1))) k1]
-                                  [(distance location (:location (m k2))) k2])))
-        m))
+(defn indiv-alloc-cost [{:keys [site-k site-alloc]} static-data]
+  (let [site-loc (get-in static-data [:sites site-k :location])]
+    (apply +
+           (mapcat
+             (fn [{:keys [skill bundles]}]
+               (map (fn [{:keys [agent-k cnt]}]
+                      (let [agent-loc (get-in static-data
+                                              [:agents agent-k :location])
+                            dist (distance agent-loc site-loc)]
+                        (cost dist cnt
+                              (get-in static-data [:skill-costs skill]))))
+                    bundles)
+               site-alloc)))))
 
-(defn filter-skill [skill agents]
-  (into {} (filter (fn [[k v]] (= skill (:skill v)))
-                   agents)))
+(defn netto-payoff [allocation static-data]
+  (- (apply + (map #(get-in static-data [:sites % :payoff]) (keys allocation)))
+     (apply + (map #(indiv-alloc-cost % static-data) allocation))))
 
-(defn allocation-for-skill
-  [site-k static-data]
-  (let [sorted-agents (sorted-map-by-distance location
-                                              (filter-skill skill agents))]
-    (loop [n-remaining n-needed
-           remaining-agents sorted-agents
-           processed-agents {}
-           allocation {}]
-      (cond
-        (zero? n-remaining)
-        [allocation (merge processed-agents remaining-agents)]
+;;; Credits: http://stackoverflow.com/a/2763660
+(defn filter-map [p m]
+  (select-keys m (for [[k v] m :when (p v)] k)))
 
-        (empty? remaining-agents)
-        nil
+(defn good-agents
+  "Finds the n (or less) agents providing the skill that are closest to the site
+  with key site-k and still have capacity."
+  [n site-k skill reservoir static-data]
+  (let [bundles (reservoir skill)
+        non-exhausted (filter-map pos? bundles)
+        by-distance (sort-by #(distance
+                                (get-in static-data [:sites site-k :location])
+                                (get-in static-data [:agents % :location]))
+                             (keys non-exhausted))]
+    (take n by-distance)))
 
-        :else
-        (let [[a-k a-v] (first remaining-agents)
-              n-taken (min n-remaining (:capacity a-v))
-              new-a-v (update-in a-v [:capacity] #(- % n-taken))]
-          (recur (- n-remaining n-taken)
-                 (dissoc remaining-agents a-k)
-                 (assoc processed-agents a-k new-a-v)
-                 (assoc allocation new-a-v n-taken)))))))
+(defn demand
+  "Return the demand for skill of the site with site-k given an allocation."
+  [allocation [site-k skill :as path] static-data]
+  {:post [(>= % 0)]}
+  (let [bundles (get-in allocation path)
+        n-allocated (apply + (vals bundles))
+        initial-capacity (get-in static-data [:sites site-k :skills skill])]
+    (- initial-capacity n-allocated)))
 
-(defn find-initial-allocation
-  "Given a construction site and information about available agents, finds a
-  heuristically good allocation for this site. Returns the coalition and and the
-  agent datastructure with capacities reduced according to the allocation."
-  [site agents]
-  (let [allocs-agents (map (fn [demand]
-                             (allocation-for-skill (:location site)
-                                                   demand
-                                                   agents))
-                           (:skills site))
-        allocs (map first allocs-agents)
-        agents (map second allocs-agents)]
-    [(into {} allocs) (into {} agents)]))
+(defn allocate-max-bundle
+  [{:keys [allocation reservoir]} [site-k skill :as path] agent-k static-data]
+  (let [demand (demand allocation path static-data)
+        to-allocate (min demand (get-in reservoir [skill agent-k]))]
+    {:allocation (update-in allocation [site-k skill agent-k]
+                            #(if % (+ % to-allocate) to-allocate))
+     :reservoir (update-in reservoir [skill agent-k] #(- % to-allocate))}))
 
 (defn allocate-full
   "Allocates as many units of skill as possible and needed to site with site-k,
   returning the new distribution."
-  [{:keys allocation reservoir :as distribution} site-k skill static-data]
+  [{:keys [allocation reservoir] :as distribution} site-k skill static-data]
   (loop [available (good-agents (count (:agents static-data)) site-k skill
                                 reservoir static-data)
          cur-distr distribution]
@@ -117,16 +120,19 @@
 (defn find-single-distribution
   "For each skill needed by site site-k, allocates as many units of that skill
   as possible and needed to it. Returns the new distribution."
-  [{:keys allocation reservoir :as distribution} site-k static-data]
-  (let [allocator (fn [prev-distr skill] (allocate-full prev-distr site-k
-                                                        skill static-data))]
+  [{:keys [allocation reservoir] :as distribution} site-k static-data]
+  (let [allocator (fn [prev-distr skill]
+                    (allocate-full prev-distr site-k skill static-data))]
     (reduce allocator distribution
             (keys (get-in static-data [:sites site-k :skills])))))
 
 (defn find-initial-distribution [reservoir static-data]
-  (let [allocator (fn [prev-distr site-k])])
-  (reduce find-single-distribution {:allocation {} :reservoir reservoir}
-          (keys (:sites static-data))))
+  "Allocates as many skills as possible from the closest agents to each
+  construction site."
+  (let [allocator (fn [prev-distr site-k]
+                    (find-single-distribution prev-distr site-k static-data))]
+    (reduce allocator {:allocation {} :reservoir reservoir}
+            (keys (:sites static-data)))))
 
 ;;; Credits: http://stackoverflow.com/questions/14488150/how-to-write-a-dissoc-in-command-for-clojure
 (defn dissoc-in
@@ -144,73 +150,44 @@
     (dissoc m k)))
 
 (defn move-to-reservoir
-  [{:keys allocation reservoir} [_ skill agent-k :as path]]
+  [{:keys [allocation reservoir]} [_ skill agent-k :as path]]
   (let [bundle-size (get-in allocation path)]
     {:allocation (dissoc-in allocation path)
      :reservoir (update-in reservoir [skill agent-k] #(+ % bundle-size))}))
 
-(defn good-agents
-  "Finds the n (or less) agents providing the skill that are closest to the site
-  with key site-k and still have capacity."
-  [n site-k skill reservoir static-data]
-  (let [bundles (reservoir skill)
-        non-exhausted (filter-map pos? bundles)
-        by-distance (sort-by #(distance
-                                (get-in static-data [:sites site-k :location])
-                                (get-in static-data [:agents % :location]))
-                             (keys non-exhausted))]
-    (take n by-distance)))
-
-(defn demand
-  "Return the demand for skill of the site with site-k given an allocation."
-  [allocation [site-k skill] static-data]
-  {:pre [(>= % 0)]}
-  (let [bundles (get-in allocation path)
-        n-allocated (apply + (values bundles))
-        initial-capacity (get-in static-data [:sites site-k :skills skill])]
-    (- initial-capacity n-allocated)))
-
-(defn allocate-max-bundle
-  [{:keys allocation reservoir} [site-k skill :as path] agent-k static-data]
-  (let [demand (demand allocation path static-data)
-        to-allocate (min demand (get-in reservoir [skill agent-k]))]
-    {:allocation (update-in allocation path
-                            #(if % (+ % to-allocate) to-allocate))
-     :reservoir (update-in reservoir [skill agent-k] #(- % to-allocate))}))
-
 (defn generate-neighborhood
-  [{:keys allocation reservoir :as distribution} static-data
-   {:keys n-good-agents}]
+  [{:keys [allocation reservoir] :as distribution} static-data
+   {:keys [n-good-agents]}]
   (concat
     (for [site-k (keys allocation)
-          skill (keys site)
+          skill (keys (allocation site-k))
           agent-k (keys skill)]
       (move-to-reservoir distribution [site-k skill agent-k]))
     (for [site-k (keys allocation)
-          skill (keys site)]
+          skill (keys (get-in static-data [:sites site-k :skills]))]
       (if (pos? (demand (demand allocation [site-k skill] static-data)))
         (for [a (good-agents n-good-agents site-k skill reservoir static-data)]
           (allocate-max-bundle distribution [site-k skill] a static-data))))))
 
-(defn find-best-distr [distrs]
-  (first (sort-by #(netto-payoff (:allocation %)) distrs)))
+(defn find-best-distr [distrs static-data]
+  (first (sort-by #(netto-payoff (:allocation %) static-data) distrs)))
 
 (defn tabu-search
-  [{:keys allocation reservoir :as distribution}
-   {:keys n-iterations :as algo-params}]
+  [{:keys [allocation reservoir] :as distribution} static-data
+   {:keys [n-iterations n-tabued] :as algo-params}]
   (let [tabu-allocs (ring-buffer n-tabued)]
     (take
       n-iterations
       (take-while
         some?
         (iterate
-          (fn [[{:keys allocation reservoir :as distribution} best-allocs
+          (fn [[{:keys [allocation reservoir] :as distribution} best-allocs
                 tabu-allocs]]
             (let [neighbors (filter #(not-any? #{(:allocation %)} tabu-allocs)
                                     (generate-neighborhood distribution
                                                            static-data
                                                            algo-params))
-                  best-neighbor (find-best-distr neighbors)
+                  best-neighbor (find-best-distr neighbors static-data)
                   best-alloc (:allocation best-neighbor)]
               (and (seq neighbors)
                    [best-neighbor (conj best-allocs best-alloc)

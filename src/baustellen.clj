@@ -52,19 +52,18 @@
        (total-cost coalition sites agents skill-costs))
     0))
 
-(defn indiv-alloc-cost [{:keys [site-k site-alloc]} static-data]
+(defn indiv-alloc-cost [[site-k site-alloc] static-data]
   (let [site-loc (get-in static-data [:sites site-k :location])]
     (apply +
            (mapcat
-             (fn [{:keys [skill bundles]}]
-               (map (fn [{:keys [agent-k cnt]}]
+             (fn [[skill bundles]]
+               (map (fn [[agent-k cnt]]
                       (let [agent-loc (get-in static-data
                                               [:agents agent-k :location])
                             dist (distance agent-loc site-loc)]
-                        (cost dist cnt
-                              (get-in static-data [:skill-costs skill]))))
-                    bundles)
-               site-alloc)))))
+                        (cost dist skill cnt (:skill-cost static-data))))
+                    bundles))
+             site-alloc))))
 
 (defn netto-payoff [allocation static-data]
   (- (apply + (map #(get-in static-data [:sites % :payoff]) (keys allocation)))

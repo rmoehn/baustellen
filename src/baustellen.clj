@@ -65,8 +65,26 @@
                     bundles))
              site-alloc))))
 
+(defn demand
+  "Return the demand for skill of the site with site-k given an allocation."
+  [allocation [site-k skill :as path] static-data]
+  {:post [(>= % 0)]}
+  (let [bundles (get-in allocation path)
+        n-allocated (apply + (vals bundles))
+        initial-capacity (get-in static-data [:sites site-k :skills skill])]
+    (- initial-capacity n-allocated)))
+
+(defn demand-met? [[site-k site-alloc] static-data]
+  (zero? (apply + (map #(demand {site-k site-alloc} [site-k %] static-data)
+                       (keys site-alloc)))))
+
+(defn indiv-alloc-brutto-payoff [[site-k site-alloc :as alloc] static-data]
+  (if (demand-met? alloc static-data)
+    (get-in static-data [:sites site-k :payoff])
+    0))
+
 (defn netto-payoff [allocation static-data]
-  (- (apply + (map #(get-in static-data [:sites % :payoff]) (keys allocation)))
+  (- (apply + (map #(indiv-alloc-brutto-payoff % static-data) allocation))
      (apply + (map #(indiv-alloc-cost % static-data) allocation))))
 
 ;;; Credits: http://stackoverflow.com/a/2763660
@@ -84,15 +102,6 @@
                                 (get-in static-data [:agents % :location]))
                              (keys non-exhausted))]
     (take n by-distance)))
-
-(defn demand
-  "Return the demand for skill of the site with site-k given an allocation."
-  [allocation [site-k skill :as path] static-data]
-  {:post [(>= % 0)]}
-  (let [bundles (get-in allocation path)
-        n-allocated (apply + (vals bundles))
-        initial-capacity (get-in static-data [:sites site-k :skills skill])]
-    (- initial-capacity n-allocated)))
 
 (defn allocate-max-bundle
   [{:keys [allocation reservoir]} [site-k skill :as path] agent-k static-data]

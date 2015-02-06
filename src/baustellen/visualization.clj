@@ -3,7 +3,7 @@
             [clojure.string :as s]
             [baustellen :refer :all]))
 
-(def green "#00aa00")
+(def green "#00aa77")
 
 (defn providers [site-k allocation]
   (for [bundles (vals (allocation site-k))

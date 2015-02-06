@@ -1,32 +1,32 @@
 {:sites {
-:Baustelle1{ :payoff 2200 :skills {:walls 30 :roof 15 :plumbing 7} :location [1 1]}
-:Baustelle2{ :payoff 1200 :skills {:walls 15 :roof 9 :plumbing 7} :location [7 11]}
-:Baustelle3{ :payoff 2500 :skills {:walls 35 :roof 27 :plumbing 20} :location [15 16]}	
-:Baustelle4{ :payoff 2200 :skills {:walls 25 :roof 20 :plumbing 12} :location [3 18]}
-:Baustelle5{ :payoff 3400 :skills {:walls 40 :roof 30 :plumbing 20} :location [7 16]}
-:Baustelle6{ :payoff 1000 :skills {:walls 12 :roof 6 :plumbing 3} :location [9 1]}
-:Baustelle7{ :payoff 1100 :skills {:walls 27 :roof 17 :plumbing 5} :location [12 2]}
-:Baustelle8{ :payoff 1800 :skills {:walls 20 :roof 15 :plumbing 5} :location [13 1]}
-:Baustelle9{ :payoff 1300 :skills {:walls 15 :roof 7 :plumbing 2} :location [16 3]}
-:Baustelle10{ :payoff 800 :skills {:walls 9 :roof 6 :plumbing 1} :location [3 4]}
+:Baustelle1 { :payoff 2200 :skills {:walls 30 :roof 15 :plumbing 7} :location [1 1]}
+:Baustelle2 { :payoff 1200 :skills {:walls 15 :roof 9 :plumbing 7} :location [7 11]}
+:Baustelle3 { :payoff 2500 :skills {:walls 35 :roof 27 :plumbing 20} :location [15 16]}
+:Baustelle4 { :payoff 2200 :skills {:walls 25 :roof 20 :plumbing 12} :location [3 18]}
+:Baustelle5 { :payoff 3400 :skills {:walls 40 :roof 30 :plumbing 20} :location [7 16]}
+:Baustelle6 { :payoff 1000 :skills {:walls 12 :roof 6 :plumbing 3} :location [9 1]}
+:Baustelle7 { :payoff 1100 :skills {:walls 27 :roof 17 :plumbing 5} :location [12 2]}
+:Baustelle8 { :payoff 1800 :skills {:walls 20 :roof 15 :plumbing 5} :location [13 1]}
+:Baustelle9 { :payoff 1300 :skills {:walls 15 :roof 7 :plumbing 2} :location [16 3]}
+:Baustelle10 { :payoff 800 :skills {:walls 9 :roof 6 :plumbing 1} :location [3 4]}
 }
 
 
 :agents 	
-:Plumber1{	:skill :plumbing :capacity 20 :location [4 15] }
-:Plumber2{	:skill :plumbing :capacity 28 :location [6 16] }
-:Plumber3{	:skill :plumbing :capacity 14 :location [3 17] }
-:Plumber4{	:skill :plumbing :capacity 23 :location [12 18] }
+{:Plumber1 {	:skill :plumbing :capacity 20 :location [4 15] }
+:Plumber2 {	:skill :plumbing :capacity 28 :location [6 16] }
+:Plumber3 {	:skill :plumbing :capacity 14 :location [3 17] }
+:Plumber4 {	:skill :plumbing :capacity 23 :location [12 18] }
 
-:Roofer1{	:skill :roof :capacity 30 :location [3 11] }
-:Roofer2{	:skill :roof :capacity 27 :location [9 3] }
-:Roofer3{	:skill :roof :capacity 25 :location [12 6] }
-:Roofer4{	:skill :roof :capacity 30 :location [17 5] }
-:Roofer5{	:skill :roof :capacity 25 :location [9 10] }
+:Roofer1 {	:skill :roof :capacity 30 :location [3 11] }
+:Roofer2 {	:skill :roof :capacity 27 :location [9 3] }
+:Roofer3 {	:skill :roof :capacity 25 :location [12 6] }
+:Roofer4 {	:skill :roof :capacity 30 :location [17 5] }
+:Roofer5 {	:skill :roof :capacity 25 :location [9 10] }
 
-:Wall1{:skill :walls :capacity 20 :location [2 15] }
-:Wall2{:skill :walls :capacity 20 :location [5 18] }
-:Wall3{:skill :walls :capacity 25 :location [8 18] }
-:Wall4{:skill :walls :capacity 20 :location [19 19]}
-:Wall5{:skill :walls :capacity 30 :location [17 14]}
+:Wall1 {:skill :walls :capacity 20 :location [2 15] }
+:Wall2 {:skill :walls :capacity 20 :location [5 18] }
+:Wall3 {:skill :walls :capacity 25 :location [8 18] }
+:Wall4 {:skill :walls :capacity 20 :location [19 19]}
+:Wall5 {:skill :walls :capacity 30 :location [17 14]}}
 }

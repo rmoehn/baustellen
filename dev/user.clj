@@ -14,28 +14,29 @@
     [clojure.walk :as walk]
     [clojure.data :refer [diff]]
     [baustellen :refer :all]
-    [baustellen.input-transformation :as it]))
+    [baustellen.input-transformation :as it]
+    [baustellen.visualization :as viz]))
 
 (def skill-cost {:walls 30
                  :roof 20
                  :plumbing 10})
 
 (def sites (it/pull-in-names {:sporthalle
-                              {:payoff 400
+                              {:payoff 1400
                                :skills {:walls 3
                                         :roof 6
                                         :plumbing 1}
                                :location [4 4]}
 
                               :schwimmhalle
-                              {:payoff 600
+                              {:payoff 1600
                                :skills {:walls 2
                                         :roof 0
                                         :plumbing 8}
                                :location [3 1]}
 
                               :einfamilienhaus
-                              {:payoff 150
+                              {:payoff 1150
                                :skills {:walls 5
                                         :roof 5
                                         :plumbing 5}

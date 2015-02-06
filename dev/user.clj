@@ -12,6 +12,7 @@
     [clojure.test :as test]
     [clojure.tools.namespace.repl :refer [refresh refresh-all]]
     [clojure.walk :as walk]
+    [clojure.data :refer [diff]]
     [baustellen :refer :all]
     [baustellen.input-transformation :as it]))
 
@@ -62,6 +63,10 @@
                              :roof {:dachdecker1 6}
                              :plumbing {:klempner1 1}}})
 
+(def static-data {:sites sites
+                  :agents agents
+                  :skill-cost skill-cost})
+
 (def completed-coalition
   (->> coalition
        (walk/prewalk-replace agents)
@@ -70,4 +75,31 @@
 (def algo-params
   {; maximum number of "good" agents to consider during the neighborhood
    ; generation
-   :n-good-agents 3})
+   :n-good-agents 3
+
+   ; number of iterations after which the tabu search shall terminate
+   :n-iterations 100
+
+   ; number of iterations a previously visit shall not be visited again
+   :n-tabued 10
+   })
+
+(def initial-distribution
+  (find-initial-distribution (it/generate-reservoir static-data) static-data))
+
+(def ex-distr {:allocation
+               {:einfamilienhaus
+                {:roof  {:dachdecker1 3},
+                 :walls  {:maurer1 3, :maurer2 2},
+                 :plumbing  {:klempner2 5}},
+                :schwimmhalle
+                {:walls  {:maurer1 0, :maurer2 2},
+                 :plumbing  {:klempner2 1, :klempner1 7}},
+                :sporthalle
+                {:roof  {:dachdecker1 6},
+                 :walls  {:maurer1 0, :maurer2 3},
+                 :plumbing  {:klempner2 0, :klempner1 1}}},
+               :reservoir
+               {:plumbing  {:klempner1 0, :klempner2 2},
+                :roof  {:dachdecker1 6},
+                :walls  {:maurer1 7, :maurer2 0}}})

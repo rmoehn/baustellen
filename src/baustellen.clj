@@ -50,8 +50,12 @@
     0))
 
 (defn netto-payoff [allocation static-data]
-  (- (apply + (map #(indiv-alloc-brutto-payoff % static-data) allocation))
-     (apply + (map #(indiv-alloc-cost % static-data) allocation))))
+  (apply + (map (fn [a]
+                  (if-not (demand-met? a static-data)
+                    0
+                    (- (indiv-alloc-brutto-payoff a static-data)
+                       (indiv-alloc-cost a static-data))))
+                allocation)))
 
 ;;; Credits: http://stackoverflow.com/a/2763660
 (defn filter-map [p m]
@@ -146,16 +150,18 @@
 (defn find-best-distr [distrs static-data]
   (first (sort-by #(netto-payoff (:allocation %) static-data) distrs)))
 
-(defn fold-nat [f e n]
+(defn apply-n-abort-nil [f e n]
   (if (zero? n)
     e
-    (recur f (f e) (dec n))))
+    (if-some [fe (f e)]
+      (recur f fe (dec n))
+      e)))
 
 (defn tabu-search
   [{:keys [allocation reservoir] :as distribution} static-data
    {:keys [n-iterations n-tabued] :as algo-params}]
   (let [tabu-allocs (ring-buffer n-tabued)]
-    (fold-nat
+    (apply-n-abort-nil
       (fn [[{:keys [allocation reservoir] :as distribution} best-allocs
             tabu-allocs]]
         (let [neighbors (filter #(not-any? #{(:allocation %)} tabu-allocs)

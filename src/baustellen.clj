@@ -43,7 +43,7 @@
 (defn demand-met? [[site-k site-alloc] static-data]
   (and (some? site-alloc)
        (zero? (apply + (map #(demand {site-k site-alloc} [site-k %] static-data)
-                            (keys site-alloc))))))
+                            (keys (get-in static-data [:sites site-k :skills])))))))
 
 (defn indiv-alloc-brutto-payoff [[site-k site-alloc :as alloc] static-data]
   (if (demand-met? alloc static-data)

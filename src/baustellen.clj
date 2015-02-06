@@ -18,40 +18,6 @@
   [dist skill cnt skill-costs]
   (* dist (Math/sqrt cnt) (skill-costs skill)))
 
-(defn sum-allocations
-  [skill allocation]
-  (apply + (vals (get allocation skill))))
-
-(defn sufficient-allocation?
-  "True if the allocated skills meet the demand of the site."
-  [{:keys [site allocation]}]
-  (let [demand (:skills site)]
-    (every?
-      (fn [skill]
-        (>= (sum-allocations skill allocation) (demand skill)))
-      (keys demand))))
-
-(defn cost-in-coal
-  [agent {:keys [site allocation]} skill-costs]
-  (let [skill (:skill agent)
-        cnt (get-in allocation [skill agent])]
-    (cost (distance (:location site)
-                    (:location agent))
-          skill cnt skill-costs)))
-
-(defn total-cost
-  [{:keys [site allocation] :as coal} sites agents skill-costs]
-  (let [agents-in-coal (mapcat keys (vals allocation))]
-    (apply + (map (fn [a] (cost-in-coal a coal skill-costs))
-                  agents-in-coal))))
-
-(defn coalition-value
-  [coalition sites agents skill-costs]
-  (if (sufficient-allocation? coalition)
-    (- (get-in coalition [:site :payoff])
-       (total-cost coalition sites agents skill-costs))
-    0))
-
 (defn indiv-alloc-cost [[site-k site-alloc] static-data]
   (let [site-loc (get-in static-data [:sites site-k :location])]
     (apply +
@@ -180,24 +146,26 @@
 (defn find-best-distr [distrs static-data]
   (first (sort-by #(netto-payoff (:allocation %) static-data) distrs)))
 
+(defn fold-nat [f e n]
+  (if (zero? n)
+    e
+    (recur f (f e) (dec n))))
+
 (defn tabu-search
   [{:keys [allocation reservoir] :as distribution} static-data
    {:keys [n-iterations n-tabued] :as algo-params}]
   (let [tabu-allocs (ring-buffer n-tabued)]
-    (take
-      n-iterations
-      (take-while
-        some?
-        (iterate
-          (fn [[{:keys [allocation reservoir] :as distribution} best-allocs
-                tabu-allocs]]
-            (let [neighbors (filter #(not-any? #{(:allocation %)} tabu-allocs)
-                                    (generate-neighborhood distribution
-                                                           static-data
-                                                           algo-params))
-                  best-neighbor (find-best-distr neighbors static-data)
-                  best-alloc (:allocation best-neighbor)]
-              (and (seq neighbors)
-                   [best-neighbor (conj best-allocs best-alloc)
-                    (conj tabu-allocs best-alloc)])))
-          [distribution [allocation] (conj tabu-allocs allocation)])))))
+    (fold-nat
+      (fn [[{:keys [allocation reservoir] :as distribution} best-allocs
+            tabu-allocs]]
+        (let [neighbors (filter #(not-any? #{(:allocation %)} tabu-allocs)
+                                (generate-neighborhood distribution
+                                                       static-data
+                                                       algo-params))
+              best-neighbor (find-best-distr neighbors static-data)
+              best-alloc (:allocation best-neighbor)]
+          (and (seq neighbors)
+               [best-neighbor (conj best-allocs best-alloc)
+                (conj tabu-allocs best-alloc)])))
+      [distribution [allocation] (conj tabu-allocs allocation)]
+      n-iterations)))

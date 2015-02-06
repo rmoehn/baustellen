@@ -89,6 +89,8 @@ Fragen:
       schneller gehen.
     - Erstmal die einfachen Operationen implementieren und sehen, wie es
       sich verhält.
+- Sollen Baustellen, deren Bedarf nicht gedeckt ist, Kosten verursachen
+  oder nicht? Welchen Einfluss hat das auf die Optimierung?
 
 Datenstrukturen:
 - Reservoir:

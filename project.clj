@@ -5,6 +5,7 @@
             :url "http://choosealicense.com/"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [amalloy/ring-buffer "1.0"]
-                 [rhizome "0.2.1"]]
+                 [rhizome "0.2.1"]
+                 [enlive "1.1.5"]]
   :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.7"]]
                    :source-paths ["dev"]}})

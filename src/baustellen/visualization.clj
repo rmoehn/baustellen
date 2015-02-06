@@ -1,7 +1,10 @@
 (ns baustellen.visualization
-  (:require [rhizome.viz :refer [view-graph]]
+  (:require [rhizome.viz :as rh]
             [clojure.string :as s]
-            [baustellen :refer :all]))
+            [clojure.java.io :as io]
+            [baustellen :refer :all]
+            [clojure.pprint :refer [pprint]]
+            [net.cgrand.enlive-html :as html]))
 
 (def green "#00aa77")
 
@@ -46,17 +49,32 @@
   (let [skill (get-in static-data [:agents agent-k :skill])]
     {:penwidth (get-in allocation [site-k skill agent-k])}))
 
-(defn show-allocation [{:keys [allocation reservoir] :as distr} static-data]
-  (let [site-ks (set (keys (:sites static-data)))
-        agent-ks (set (keys (:agents static-data)))]
-   (view-graph (concat site-ks agent-ks)
-               (fn [k] (and (site? k static-data) (providers k allocation)))
-               :directed? false
-               :vertical? false
-               :options {:layout "fdp"
-                         :splines "true"
-                         :sep "0.5,0.5"
-                         :dpi 60
-                         }
-               :node->descriptor #(format-node % distr static-data)
-               :edge->descriptor #(format-edge %1 %2 allocation static-data))))
+(defn make-image [{:keys [allocation reservoir] :as distr} static-data]
+  (rh/graph->image
+    (concat (keys (:sites static-data)) (keys (:agents static-data)))
+              (fn [k] (and (site? k static-data) (providers k allocation)))
+              :directed? false
+              :vertical? false
+              :options {:layout "fdp"
+                        :splines "true"
+                        :sep "0.5,0.5"
+                        :dpi 60
+                        }
+              :node->descriptor #(format-node % distr static-data)
+              :edge->descriptor #(format-edge %1 %2 allocation static-data)))
+
+(defn show-allocation [& args]
+  (rh/view-image (apply make-image args)))
+
+(html/deftemplate before-after (io/resource "before-after.html")
+  [basename]
+  [:head :title] (html/content basename)
+  [:#before]  (html/set-attr :src (str basename "-before.png"))
+  [:#after]  (html/set-attr :src (str basename "-after.png")))
+
+(defn save-before-after [distr-before distr-after static-data basename]
+  (rh/save-image (make-image distr-before static-data)
+                 (str basename "-before.png"))
+  (rh/save-image (make-image distr-after static-data)
+                 (str basename "-after.png"))
+  (spit (str basename ".html") (apply str (before-after basename))))

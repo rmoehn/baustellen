@@ -41,8 +41,9 @@
     (- initial-capacity n-allocated)))
 
 (defn demand-met? [[site-k site-alloc] static-data]
-  (zero? (apply + (map #(demand {site-k site-alloc} [site-k %] static-data)
-                       (keys site-alloc)))))
+  (and (some? site-alloc)
+       (zero? (apply + (map #(demand {site-k site-alloc} [site-k %] static-data)
+                            (keys site-alloc))))))
 
 (defn indiv-alloc-brutto-payoff [[site-k site-alloc :as alloc] static-data]
   (if (demand-met? alloc static-data)
@@ -162,7 +163,7 @@
    {:keys [n-iterations n-tabued] :as algo-params}]
   (let [tabu-allocs (ring-buffer n-tabued)]
     (apply-n-abort-nil
-      (fn [[{:keys [allocation reservoir] :as distribution} best-allocs
+      (fn [[{:keys [allocation reservoir] :as distribution} best-distrs
             tabu-allocs]]
         (let [neighbors (filter #(not-any? #{(:allocation %)} tabu-allocs)
                                 (generate-neighborhood distribution
@@ -171,7 +172,7 @@
               best-neighbor (find-best-distr neighbors static-data)
               best-alloc (:allocation best-neighbor)]
           (and (seq neighbors)
-               [best-neighbor (conj best-allocs best-alloc)
+               [best-neighbor (conj best-distrs best-neighbor)
                 (conj tabu-allocs best-alloc)])))
-      [distribution [allocation] (conj tabu-allocs allocation)]
+      [distribution [distribution] (conj tabu-allocs allocation)]
       n-iterations)))

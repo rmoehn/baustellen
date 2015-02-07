@@ -142,7 +142,7 @@
           skill (keys (allocation site-k))
           agent-k (keys (get-in allocation [site-k skill]))]
       (move-to-reservoir distribution [site-k skill agent-k]))
-    (for [site-k (keys allocation)
+    (for [site-k (keys (static-data :sites))
           skill (keys (get-in static-data [:sites site-k :skills]))
           :when (pos? (demand allocation [site-k skill] static-data))
           a (good-agents n-good-agents site-k skill reservoir static-data)]

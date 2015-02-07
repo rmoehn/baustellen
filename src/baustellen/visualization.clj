@@ -66,7 +66,7 @@
 (defn show-allocation [& args]
   (rh/view-image (apply make-image args)))
 
-(html/deftemplate before-after (io/resource "before-after.html")
+(html/deftemplate before-after (io/resource "templates/before-after.html")
   [basename]
   [:head :title] (html/content basename)
   [:#before]  (html/set-attr :src (str basename "-before.png"))

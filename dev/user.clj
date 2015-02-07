@@ -24,13 +24,16 @@
 (def algo-params
   {; maximum number of "good" agents to consider during the neighborhood
    ; generation
-   :n-good-agents 3
+   :n-good-agents 15
 
    ; number of iterations after which the tabu search shall terminate
-   :n-iterations 100
+   :n-iterations 200
 
    ; number of iterations a previously visit shall not be visited again
-   :n-tabued 10
+   :n-tabued 20
+
+   ; function to use for generating an initial distribution
+   :init-fn find-initial-distribution
    })
 
 (defn empty-distribution [static-data]
@@ -52,3 +55,29 @@
                {:plumbing  {:klempner1 0, :klempner2 2},
                 :roof  {:dachdecker1 6},
                 :walls  {:maurer1 7, :maurer2 0}}})
+
+(defn prepare-result [initial-distribution static-data algo-params]
+  (let [best-distrs (second (tabu-search initial-distribution static-data
+                                         algo-params))]
+    (->> best-distrs
+         (map (fn [d] [d (netto-payoff (d :allocation) static-data)]))
+         (sort-by second >=)
+         (take 5))))
+
+(defn run-on-file
+  [file skill-cost algo-params]
+  (let [filename (.getName file)
+        data (read-string (slurp file))
+        static-data (if (data :skill-cost)
+                      data
+                      (merge {:skill-cost skill-cost} data))
+        init-distr ((algo-params :init-fn) static-data)
+        init-payoff (netto-payoff (:allocation init-distr) static-data)
+        best-five (prepare-result init-distr static-data algo-params)
+        opti-payoff (netto-payoff ((ffirst best-five) :allocation) static-data)]
+    (pprint best-five)
+    (println filename)
+    (println (str "initial: " init-payoff " optimized: " opti-payoff))
+    (viz/save-before-after init-distr (ffirst best-five) static-data filename)))
+
+(def examples (filter #(.isFile %) (file-seq (io/file (io/resource "examples")))))

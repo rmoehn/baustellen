@@ -1,6 +1,7 @@
 (ns baustellen
   (:require [clojure.pprint :refer [pprint]]
-            [amalloy.ring-buffer :refer [ring-buffer]]))
+            [amalloy.ring-buffer :refer [ring-buffer]]
+            [baustellen.input-transformation :as it]))
 
 (defn distance [p1 p2]
   (Math/sqrt
@@ -105,10 +106,11 @@
     (reduce allocator distribution
             (keys (get-in static-data [:sites site-k :skills])))))
 
-(defn find-initial-distribution [reservoir static-data]
+(defn find-initial-distribution [static-data]
   "Allocates as many skills as possible from the closest agents to each
   construction site."
-  (let [allocator (fn [prev-distr site-k]
+  (let [reservoir (it/generate-reservoir static-data)
+        allocator (fn [prev-distr site-k]
                     (find-single-distribution prev-distr site-k static-data))]
     (reduce allocator {:allocation {} :reservoir reservoir}
             (keys (:sites static-data)))))

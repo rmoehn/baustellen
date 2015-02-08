@@ -1,0 +1,12 @@
+{:sites {:B1 {:skills {:walls 10}
+              :payoff 1000
+              :location [3 3]}
+         :B2  {:skills {:walls 10}
+               :payoff 1000
+               :location [5 5]}}
+ :agents {:A1 {:skill :walls
+               :capacity 10
+               :location [4 4]}
+          :A2 {:skill :walls
+               :capacity 10
+               :location [1 1]}}}

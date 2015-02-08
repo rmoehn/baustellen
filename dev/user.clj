@@ -30,10 +30,10 @@
    :n-good-agents 15
 
    ; number of iterations after which the tabu search shall terminate
-   :n-iterations 200
+   :n-iterations 1000
 
    ; number of iterations a previously visit shall not be visited again
-   :n-tabued 20
+   :n-tabued 75
 
    ; function to use for generating an initial distribution
    :init-fn find-initial-distribution
@@ -61,7 +61,7 @@
                                          algo-params))]
     (->> best-distrs
          (map (fn [d] [d (netto-payoff (d :allocation) static-data)]))
-         (sort-by second >=)
+         (sort-by second >)
          (take 5))))
 
 (defn run-on-file

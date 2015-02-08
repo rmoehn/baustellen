@@ -1,0 +1,14 @@
+{:sites {:B21 {:payoff 1000
+               :skills {:walls 10
+                        :plumbing 10}
+               :location [2 1]}
+         :B22 {:payoff 2000
+               :skills {:walls 10
+                        :plumbing 10}
+               :location [2 3]}}
+ :agents {:W21 {:skill :walls
+                :capacity 10
+                :location [1 2]}
+          :P21 {:skill :plumbing
+                :capacity 10
+                :location [3 2]}}}

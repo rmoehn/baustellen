@@ -61,7 +61,7 @@
               :vertical? false
               :options {:layout "fdp"
                         :splines "true"
-                        :sep "0.5,0.5"
+                        :sep "0.3,0.3"
                         :dpi 60
                         }
               :node->descriptor #(format-node % distr static-data)

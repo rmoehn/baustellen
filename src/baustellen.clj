@@ -151,7 +151,7 @@
       (allocate-max-bundle distribution [site-k skill] a static-data))))
 
 (defn find-best-distr [distrs static-data]
-  (first (sort-by #(netto-payoff (:allocation %) static-data) distrs)))
+  (first (sort-by #(netto-payoff (:allocation %) static-data) >= distrs)))
 
 (defn apply-n-abort-nil [f e n]
   (if (zero? n)

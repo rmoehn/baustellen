@@ -14,7 +14,8 @@
     agent-k))
 
 (defn loc->str [[x y]]
-  (str (* x 0.5) \, (* y 0.5) \! ))
+  (let [scale 0.6]
+    (str (* x scale) \, (* y scale) \! )))
 
 (defn entities [static-data]
   (merge (:agents static-data) (:sites static-data)))
@@ -31,7 +32,8 @@
 (defmethod format-node :site [k {:keys [allocation]} static-data]
   {:label (shorten (name k))
    :pos (loc->str (:location (get-in static-data [:sites k])))
-   :shape "box"
+   :shape "square"
+   :width 0.3
    :style "filled"
    :color (if (demand-met? [k (allocation k)] static-data) green "red")})
 
@@ -39,6 +41,8 @@
   (let [skill (get-in static-data [:agents k :skill])]
     {:label (shorten (name k))
      :pos (loc->str (:location (get-in static-data [:agents k])))
+     :fixedsize "true"
+     :width 0.4
      :shape "circle"
      :style "filled"
      :fillcolor "gray"

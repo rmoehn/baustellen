@@ -21,6 +21,9 @@
                  :roof 20
                  :plumbing 10})
 
+(defn empty-distribution [static-data]
+  {:allocation {} :reservoir (it/generate-reservoir static-data)})
+
 (def algo-params
   {; maximum number of "good" agents to consider during the neighborhood
    ; generation
@@ -35,9 +38,6 @@
    ; function to use for generating an initial distribution
    :init-fn find-initial-distribution
    })
-
-(defn empty-distribution [static-data]
-  {:allocation {} :reservoir (it/generate-reservoir static-data)})
 
 (def ex-distr {:allocation
                {:einfamilienhaus
@@ -67,7 +67,7 @@
 (defn run-on-file
   [file skill-cost algo-params]
   (let [filename (.getName file)
-        data (read-string (slurp file))
+        data (it/read-data file)
         static-data (if (data :skill-cost)
                       data
                       (merge {:skill-cost skill-cost} data))

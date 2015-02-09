@@ -80,4 +80,4 @@
     (println (str "initial: " init-payoff " optimized: " opti-payoff))
     (viz/save-before-after init-distr (ffirst best-five) static-data filename)))
 
-(def examples (filter #(.isFile %) (file-seq (io/file (io/resource "examples")))))
+(def examples (filter #(and (.isFile %) (not (.isHidden %))) (file-seq (io/file (io/resource "examples")))))

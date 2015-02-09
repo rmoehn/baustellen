@@ -91,7 +91,7 @@
                                 reservoir static-data)
          cur-distr distribution]
     (if (and (seq available)
-             (pos? (demand allocation [site-k skill] static-data)))
+             (pos? (demand (:allocation cur-distr) [site-k skill] static-data)))
       (recur (rest available)
              (allocate-max-bundle cur-distr [site-k skill] (first available)
                                   static-data))

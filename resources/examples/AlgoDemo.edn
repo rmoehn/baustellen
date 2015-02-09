@@ -1,0 +1,39 @@
+{:sites {:B1 {:skills {:roof 10}
+              :payoff 1000
+              :location [1 1]}
+         :B2  {:skills {:roof 10}
+               :payoff 1000
+               :location [5 5]}
+         :B21 {:payoff 1500
+               :skills {:walls 20}
+               :location [2 6]}
+         :B22 {:payoff 2000
+               :skills {:walls 20}
+               :location [2 8]}
+         :B31 {:payoff 1000
+               :skills {:plumbing 12}
+               :location [7 3.5]}}
+ :agents {:R1 {:skill :roof
+               :capacity 10
+               :location [4 4]}
+          :R2 {:skill :roof
+               :capacity 10
+               :location [3 3]}
+          :W21 {:skill :walls
+                :capacity 10
+                :location [1 7]}
+          :P21 {:skill :plumbing
+                :capacity 13
+                :location [3 7]}
+          :W31 {:skill :walls
+                :capacity 4
+                :location [6 1.3]}
+          :W32 {:skill :walls
+                :capacity 10 
+                :location [7 1]}
+          :W33 {:skill :walls
+                :capacity 10 
+                :location [8 1.3]}
+          :W34 {:skill :walls
+                :capacity 12 
+                :location [7 7]}}}

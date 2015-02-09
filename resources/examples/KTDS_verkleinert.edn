@@ -1,0 +1,33 @@
+
+{:sites {
+:Baustelle1{ :payoff 2200 :skills {:walls 30 :roof 15 :plumbing 7} :location [3 4]}
+:Baustelle2{ :payoff 1200 :skills {:walls 15 :roof 9 :plumbing 7} :location [4 17]}
+:Baustelle3{ :payoff 2500 :skills {:walls 35 :roof 27 :plumbing 20} :location [12 18]}	
+:Baustelle4{ :payoff 2200 :skills {:walls 25 :roof 20 :plumbing 12} :location [17 7]}
+}
+
+; Blue : Walls,
+; Yellow : Roofer,  
+; Green : Plumber
+
+:agents {	
+:Plumber1{	:skill :plumbing :capacity 20 :location [3 18] }
+:Plumber2{	:skill :plumbing :capacity 28 :location [5 4] }
+:Plumber3{	:skill :plumbing :capacity 14 :location [10 11] }
+:Plumber4{	:skill :plumbing :capacity 23 :location [15 18] }
+:Plumber5{	:skill :plumbing :capacity 20 :location [20 7] }
+
+:Roofer2{	:skill :roof :capacity 27 :location [4 6] }
+:Roofer3{	:skill :roof :capacity 25 :location [16 5] }
+:Roofer4{	:skill :roof :capacity 30 :location [19 2] }
+
+
+:Wall2{:skill :walls :capacity 41 :location [3 14] }
+:Wall3{:skill :walls :capacity 40 :location [10 9] }
+:Wall4{:skill :walls :capacity 37 :location [15 20]}
+:Wall5{:skill :walls :capacity 35 :location [17 16]}
+}}
+
+; Es existiert mindestens ein Dummy-Spieler.
+
+

@@ -1,8 +1,8 @@
 (defproject baustellen "0.1.0-SNAPSHOT"
-  :description "TODO"
-  :url "TODO"
-  :license {:name "TODO: Choose a license"
-            :url "http://choosealicense.com/"}
+  :description "Primitive resource allocation with tabu search"
+  :url "https://github.com/rmoehn/baustellen"
+  :license {:name "MIT License"
+            :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [amalloy/ring-buffer "1.0"]
                  [rhizome "0.2.1"]

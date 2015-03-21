@@ -17,6 +17,11 @@
     [baustellen.input-transformation :as it]
     [baustellen.visualization :as viz]))
 
+;;; If you want to play around, jump to the bottom of the file. There won't be
+;;; much to find, though, unless you're prepared for serious playing around. But
+;;; I could tidy up everything and prepare some more entry points if you're
+;;; interested for some reason.
+
 (def skill-cost {:walls 30
                  :roof 20
                  :plumbing 10})
@@ -30,31 +35,14 @@
    :n-good-agents 15
 
    ; number of iterations after which the tabu search shall terminate
-   :n-iterations 1000
+   :n-iterations 200
 
    ; number of iterations a previously visit shall not be visited again
-   :n-tabued 75
+   :n-tabued 100
 
    ; function to use for generating an initial distribution
    :init-fn find-initial-distribution
    })
-
-(def ex-distr {:allocation
-               {:einfamilienhaus
-                {:roof  {:dachdecker1 3},
-                 :walls  {:maurer1 3, :maurer2 2},
-                 :plumbing  {:klempner2 5}},
-                :schwimmhalle
-                {:walls  {:maurer1 0, :maurer2 2},
-                 :plumbing  {:klempner2 1, :klempner1 7}},
-                :sporthalle
-                {:roof  {:dachdecker1 6},
-                 :walls  {:maurer1 0, :maurer2 3},
-                 :plumbing  {:klempner2 0, :klempner1 1}}},
-               :reservoir
-               {:plumbing  {:klempner1 0, :klempner2 2},
-                :roof  {:dachdecker1 6},
-                :walls  {:maurer1 7, :maurer2 0}}})
 
 (defn prepare-result [initial-distribution static-data algo-params]
   (let [best-distrs (second (tabu-search initial-distribution static-data
@@ -64,8 +52,20 @@
          (sort-by second >)
          (take 5))))
 
+(defn run-on-file*
+  [file skill-cost algo-params]
+  (let [filename (.getName file)
+        data (it/read-data file)
+        static-data (if (data :skill-cost)
+                      data
+                      (merge {:skill-cost skill-cost} data))
+        init-distr ((algo-params :init-fn) static-data)
+        res (tabu-search init-distr static-data algo-params)]
+    (pprint res)))
+
 (defn run-on-file
   [file skill-cost algo-params]
+  (println file)
   (let [filename (.getName file)
         data (it/read-data file)
         static-data (if (data :skill-cost)
@@ -76,8 +76,27 @@
         best-five (prepare-result init-distr static-data algo-params)
         opti-payoff (netto-payoff ((ffirst best-five) :allocation) static-data)]
     (pprint best-five)
-    (println filename)
-    (println (str "initial: " init-payoff " optimized: " opti-payoff))
+    (println (netto-payoff (:allocation (ffirst best-five)) static-data))
     (viz/save-before-after init-distr (ffirst best-five) static-data filename)))
 
-(def examples (filter #(and (.isFile %) (not (.isHidden %))) (file-seq (io/file (io/resource "examples")))))
+;;; There are example construction site and company data in resources/examples.
+;;; You can add your own if you like.
+
+(def examples (filter #(and (.isFile %) (not (.isHidden %)))
+                      (file-seq
+                        (io/file
+                          (io/resource "examples")))))
+
+(comment
+
+  (pprint (it/read-data (first examples)))
+
+  ;; Execute this in order to run the algorithm on every example in
+  ;; resources/examples. The results will be printed at the REPL and
+  ;; visualizations will be output as PNG and HTML files in the project root
+  ;; directory.
+  (refresh)
+  (doseq [f examples]
+    (run-on-file f skill-cost algo-params))
+
+)
